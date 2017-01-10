@@ -54,22 +54,24 @@ public class MapImage extends JPanel {
             } else {
                 g2d.setColor(Color.GREEN);
             }
+            BasicStroke stroke = new BasicStroke(5, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 1);
+            g2d.setStroke(stroke);
             g2d.drawLine(mouseEvent.getX(), mouseEvent.getY(), lastClick.getX(), lastClick.getY());
         }
 
         g2d.setColor(Color.WHITE);
+
+/*
         int r = 100;
 
-
-
-        /*
+        *//*
             2      3
 
         1             4
 
            6        5
 
-         */
+         *//*
 
         for(int i = 0; i < 10; i++) {
             Polygon hex = new Polygon();
@@ -82,11 +84,17 @@ public class MapImage extends JPanel {
             hex.addPoint(-r, 0); // 7 (1)
             hex.translate(0, r*2 * i);
             for (int k = 0; k < 34; k++) {
+                if(k % 2 == 0) {
+                    hex.translate(r, r);
+                }
+                else {
+                    hex.translate(-r, -r);
+                }
                 g2d.drawPolygon(hex);
                 hex.translate(r * 2, 0);
             }
 
-        }
+        }*/
         // Restore original transform
         g2d.setTransform(originalTransform);
     }
@@ -98,25 +106,22 @@ public class MapImage extends JPanel {
     }
 
     public void zoomImage(int i) {
-        if (zoomIncrement == -1) {
-            zoomIncrement = Math.abs(i);
-        }
-        zoom += (i / zoomIncrement) * .05;
+        /*zoom += (i / zoomIncrement);
         if (zoom > MAX_ZOOM) {
             zoom = MAX_ZOOM;
         }
         if (zoom < MIN_ZOOM) {
             zoom = MIN_ZOOM;
         }
-        super.repaint();
+        super.repaint();*/
     }
 
-    public void addClick(MouseEvent e) {
+    public void addClick(MouseEvent e, double xModifier, double yModifier) {
         if (e.getButton() == MouseEvent.BUTTON3) {
             clicks.clear();
         } else {
-            System.out.println(e);
-            clicks.add(e);
+            MouseEvent newEvent = new MouseEvent(e.getComponent(), e.getID(), e.getWhen(), e.getModifiers(), e.getX() + (int)(image.getWidth() * xModifier) , e.getY() + (int)(image.getHeight() * yModifier), e.getClickCount(), e.isPopupTrigger(), e.getButton());
+            clicks.add(newEvent);
         }
         super.repaint();
     }

@@ -11,13 +11,13 @@ public class MapForm {
         addAdjustmentListener(verticalScrollBar);
         mapPanel.addMouseWheelListener(new MouseWheelListener() {
             public void mouseWheelMoved(MouseWheelEvent e) {
-                getMapPanel().zoomImage(e.getScrollAmount() * e.getWheelRotation());
+                getMapPanel().zoomImage(e.getWheelRotation());
             }
         });
         mapPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                getMapPanel().addClick(e);
+                getMapPanel().addClick(e, (double)horizontalScrollBar.getValue() / (double)horizontalScrollBar.getMaximum(), (double)verticalScrollBar.getValue() / (double)verticalScrollBar.getMaximum());
             }
         });
     }
@@ -36,6 +36,11 @@ public class MapForm {
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
+        JFrame distanceFrame = new JFrame("DistanceForm");
+        distanceFrame.setContentPane(new TripInfoForm().getInfoPanel());
+        distanceFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        distanceFrame.pack();
+        distanceFrame.setVisible(true);
     }
 
     private void createUIComponents() {
