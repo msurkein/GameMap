@@ -19,19 +19,20 @@ public class MapImage extends JPanel {
     private double MIN_ZOOM = 0.1;
     private double zoomIncrement = -1;
     private List<MouseEvent> clicks = new ArrayList<MouseEvent>();
+    private TripInfoForm tripInfoForm;
 
     MapImage() {
         this.setSize(1024, 768);
         zoom = 1;
         try {
-            image = ImageIO.read(new File("D:\\Projects\\Personal\\GameMap\\src\\main\\resources\\ThedasMap.jpg"));
+            image = ImageIO.read(this.getClass().getResourceAsStream("ThedasMap.jpg"));
         } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
 
     @Override
-    protected void paintComponent(Graphics g) {
+    protected void paintComponent(final Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
         // Backup original transform
@@ -39,28 +40,47 @@ public class MapImage extends JPanel {
 
         g2d.translate(-(x * image.getWidth() * zoom), -(y * image.getHeight() * zoom));
 
-        g2d.scale(zoom, zoom);
+        //g2d.scale(zoom, zoom);
 
         // paint the image here with no scaling
         g2d.drawImage(image, 0, 0, null);
+        double distance = 0;
+        double travelTime = 0;
         for (int k = 0; k < clicks.size(); k++) {
             MouseEvent mouseEvent = clicks.get(k);
             MouseEvent lastClick = mouseEvent;
             if (k != 0) {
                 lastClick = clicks.get(k - 1);
             }
+            double travelMultiplier = 2.0;
             if (mouseEvent.isShiftDown()) {
+                // horseback
                 g2d.setColor(Color.CYAN);
+                travelMultiplier = 1.0;
+            } else if (mouseEvent.isControlDown()) {
+                g2d.setColor(Color.MAGENTA);
+                travelMultiplier = 0.5;
             } else {
                 g2d.setColor(Color.GREEN);
             }
-            BasicStroke stroke = new BasicStroke(5, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 1);
+            double sqrt = Math.sqrt(Math.pow(mouseEvent.getX() - lastClick.getX(), 2) + Math.pow(mouseEvent.getY() - lastClick.getY(), 2)) / 140;
+            distance += (sqrt * 35);
+            BasicStroke stroke;
+            if(mouseEvent.getButton() == MouseEvent.BUTTON3) {
+                travelMultiplier *= 2;
+                stroke = new BasicStroke(5, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 1, new float[]{10F}, 0.0F);
+            }
+            else {
+                stroke = new BasicStroke(5, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 1);;
+            }
+            travelTime += sqrt * travelMultiplier;
             g2d.setStroke(stroke);
             g2d.drawLine(mouseEvent.getX(), mouseEvent.getY(), lastClick.getX(), lastClick.getY());
         }
-
+        if (tripInfoForm != null) {
+            tripInfoForm.setTravelInfo(distance, travelTime);
+        }
         g2d.setColor(Color.WHITE);
-
 /*
         int r = 100;
 
@@ -117,12 +137,24 @@ public class MapImage extends JPanel {
     }
 
     public void addClick(MouseEvent e, double xModifier, double yModifier) {
-        if (e.getButton() == MouseEvent.BUTTON3) {
-            clicks.clear();
-        } else {
-            MouseEvent newEvent = new MouseEvent(e.getComponent(), e.getID(), e.getWhen(), e.getModifiers(), e.getX() + (int)(image.getWidth() * xModifier) , e.getY() + (int)(image.getHeight() * yModifier), e.getClickCount(), e.isPopupTrigger(), e.getButton());
-            clicks.add(newEvent);
+        MouseEvent newEvent = new MouseEvent(e.getComponent(), e.getID(), e.getWhen(), e.getModifiers(), e.getX() + (int)(image.getWidth() * xModifier) , e.getY() + (int)(image.getHeight() * yModifier), e.getClickCount(), e.isPopupTrigger(), e.getButton());
+        clicks.add(newEvent);
+        super.repaint();
+    }
+
+    public void setTripInfoForm(TripInfoForm tripInfoForm) {
+        this.tripInfoForm = tripInfoForm;
+    }
+
+    public void removeLastClick() {
+        if(!clicks.isEmpty()) {
+            clicks.remove(clicks.size() - 1);
+            super.repaint();
         }
+    }
+
+    public void clearClicks() {
+        clicks.clear();
         super.repaint();
     }
 }
